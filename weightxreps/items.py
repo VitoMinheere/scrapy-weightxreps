@@ -14,5 +14,6 @@ class WeightxrepsItem(Item):
     user_weight = Field()
     exercise_name = Field()
     exercise_category = Field()
-    exercise_load = Field()
+    exercise_volume = Field()
     repetitions_done = Field()
+    exercise_weight = Field()

@@ -25,8 +25,9 @@ EXPORT_FIELDS = [
     'user_weight',
     'exercise_name',
     'exercise_category',
-    'exercise_load',
-    'repetitions_done'
+    'exercise_volume',
+    'repetitions_done',
+    'exercise_weight'
 ]
 
 
