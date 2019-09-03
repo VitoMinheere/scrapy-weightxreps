@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 from datetime import datetime, date, timedelta
 from scrapy.spiders import CrawlSpider
@@ -15,11 +16,12 @@ class UserDataByPeriod(CrawlSpider):
     name = 'weightxreps'
     allowed_domains = ['weightxreps.net']
 
-    def __init__(self, user='', start='', end='', *args, **kwargs):
+    def __init__(self, user='', start='', end='', save_html=False, *args, **kwargs):
         super(UserDataByPeriod, self).__init__(*args, **kwargs)
         self.user_name = user
         self.date_start = start
         self.date_end = end
+        self.save_html = save_html
         self.start_urls = ("http://weightxreps.net/journal/%s/" % user,)
         self.items = []
         self.date = None
@@ -62,6 +64,16 @@ class UserDataByPeriod(CrawlSpider):
         self.date = self.date_start
         return Request(self.start_urls[0] + str(self.date), self.recursive_parse)
 
+    def parse_to_file(self, response):
+        file_dir = 'data/' + self.user_name + '/pages/'
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        filename = file_dir + str(self.date) + '.html'
+
+        with open(filename, 'wb') as html_file:
+            html_file.write(response.body)
+            html_file.close()
+
     def recursive_parse(self, response):
         """
             Scrape a specified range between dates
@@ -70,6 +82,9 @@ class UserDataByPeriod(CrawlSpider):
         jbody = response.xpath('//div[@id="jbody"]')
 
         if weight:
+            if self.save_html:
+                self.parse_to_file(response)
+
             items = []
             for user_text, eblock in zip(jbody.xpath('div[@class="userText"]'),
                                          jbody.xpath('div[@class="eblock"]')):
@@ -85,7 +100,6 @@ class UserDataByPeriod(CrawlSpider):
                     zipped_data = self.extract_exercise(ex)
                     for load, reps, sets in zipped_data:
                         amount_of_sets = self.extract_sets(sets)
-                        print(amount_of_sets)
                         for _ in range(int(amount_of_sets[0])):
                             i = item.copy()
                             i['exercise_load'] = load.extract()
