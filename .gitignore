@@ -1,5 +1,6 @@
 # Scrapy stuff:
 .scrapy
+data/
 
 # Environments
 .env
