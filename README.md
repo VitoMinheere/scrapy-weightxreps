@@ -28,15 +28,14 @@ Date format is YYYY-MM-DD
 
 ```sh
 # Data by date 2015-09-30
-scrapy crawl weightxreps -a user='Bosshogg' -a start='2015-09-30' -a end='2015-09-30' -o /tmp/data.csv -t csv
+scrapy crawl weightxreps -a user='Bosshogg' -a start='2015-09-30' -a end='2015-09-30' -o /data/Bosshogg.csv -t csv
 
 # Today's data
-scrapy crawl weightxreps -a user='Bosshogg' -a start='today' -o /tmp/data.csv -t csv
+scrapy crawl weightxreps -a user='Bosshogg' -a start='today' -o /data/Bosshogg.csv -t csv
 ```
 
 ## Status
-Project is: _in progress_, currently trying to get the project to Python 3 and to actually get it to scrape some data.
-The spider connects to pages and does actually scrape something but the ```data.csv``` file always ends up empty.
+Project is: _in progress_, scraping is possible, however i am not getting all the data i want. I want to also add the user's comments
 
 ## Inspiration
 Fork from https://github.com/linsdev/scrapy-weightxreps

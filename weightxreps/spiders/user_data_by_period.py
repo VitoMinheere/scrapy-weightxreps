@@ -25,11 +25,12 @@ class UserDataByPeriod(CrawlSpider):
         self.date = None
 
     def extract_exercise(self, ex):
+        """
+            Extract the exercise data from the jbody text
+        """
         load = ex.xpath('tr/td/span[@class="weight n W weightunit-1"]/text()')
         reps = ex.xpath('tr/td/span[@class="n R"]/text()')
         sets = ex.xpath('tr/td/span[@class="n"]/text()')
-
-        print(sets)
         return zip(load, reps, sets)
 
     def extract_sets(self, sets):
@@ -38,47 +39,11 @@ class UserDataByPeriod(CrawlSpider):
         for item in items:
             if item != '+':
                 cleaned_items.append(item)
+            else:
+                # TODO add sets when BW+weight is used
+                cleaned_items.append(1)
 
         return cleaned_items
-
-    def recursive_parse(self, response):
-        """
-            Scrape a specified range between dates
-        """
-        weight = response.xpath('//span[@class="weight bwnum weightunit-1"]/text()').extract()
-        jbody = response.xpath('//div[@id="jbody"]')
-
-        if weight:
-            items = []
-            for user_text, eblock in zip(jbody.xpath('div[@class="userText"]'),
-                                         jbody.xpath('div[@class="eblock"]')):
-                item = WeightxrepsItem()
-                item['user_name'] = self.user_name
-                item['exercise_date'] = response.url[-10:]
-                item['user_weight'] = weight
-                item['exercise_name'] = eblock.xpath('div/strong/span[@class="ename"]/text()').extract()
-                item['exercise_category'] = user_text.re(r'([a-zA-Z]+)<br>\s*<br>\s*</div>$') or \
-                                            items and items[-1]['exercise_category'] or None
-
-                for ex in eblock.xpath('table[@class=""]/tbody'):
-                    zipped_data = self.extract_exercise(ex)
-                    for load, reps, sets in zipped_data:
-                        amount_of_sets = self.extract_sets(sets)
-                        print(amount_of_sets)
-                        for _ in range(int(sets.extract())):
-                            i = item.copy()
-                            i['exercise_volume'] = load.extract()
-                            i['repetitions_done'] = reps.extract()
-                            i['exercise_weight'] = float(i['exercise_volume']) / float(i['repetitions_done'])
-                            items.append(i)
-
-            self.items.extend(items)
-
-        if self.date < self.date_end:  # Add a day and continue scraping
-            self.date += timedelta(days=1)
-            return Request(self.start_urls[0] + str(self.date), self.recursive_parse)
-
-        return self.items
 
     def parse(self, response):
         """
@@ -96,3 +61,41 @@ class UserDataByPeriod(CrawlSpider):
 
         self.date = self.date_start
         return Request(self.start_urls[0] + str(self.date), self.recursive_parse)
+
+    def recursive_parse(self, response):
+        """
+            Scrape a specified range between dates
+        """
+        weight = response.xpath('//span[@class="weight bwnum weightunit-1"]/text()').extract()
+        jbody = response.xpath('//div[@id="jbody"]')
+
+        if weight:
+            items = []
+            for user_text, eblock in zip(jbody.xpath('div[@class="userText"]'),
+                                         jbody.xpath('div[@class="eblock"]')):
+                item = WeightxrepsItem()
+                item['user_name'] = self.user_name
+                item['exercise_date'] = response.url[-10:]
+                item['user_weight'] = weight
+                item['exercise_name'] = eblock.xpath('div/strong/span[@class="ename"]/text()').extract()
+                #item['exercise_category'] = user_text.re(r'([a-zA-Z]+)<br>\s*<br>\s*</div>$') or \
+                #                            items and items[-1]['exercise_category'] or None
+
+                for ex in eblock.xpath('table[@class=""]/tbody'):
+                    zipped_data = self.extract_exercise(ex)
+                    for load, reps, sets in zipped_data:
+                        amount_of_sets = self.extract_sets(sets)
+                        print(amount_of_sets)
+                        for _ in range(int(amount_of_sets[0])):
+                            i = item.copy()
+                            i['exercise_load'] = load.extract()
+                            i['repetitions_done'] = reps.extract()
+                            items.append(i)
+
+            self.items.extend(items)
+
+        if self.date < self.date_end:  # Add a day and continue scraping
+            self.date += timedelta(days=1)
+            return Request(self.start_urls[0] + str(self.date), self.recursive_parse)
+
+        return self.items

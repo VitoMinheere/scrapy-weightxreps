@@ -24,10 +24,8 @@ EXPORT_FIELDS = [
     'exercise_date',
     'user_weight',
     'exercise_name',
-    'exercise_category',
-    'exercise_volume',
+    'exercise_load',
     'repetitions_done',
-    'exercise_weight'
 ]
 
 
@@ -69,7 +67,8 @@ ROBOTSTXT_OBEY = True
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'weightxreps.middlewares.MyCustomDownloaderMiddleware': 543,
+    #'weightxreps.middlewares.MyCustomDownloaderMiddleware': 543,
+#    'scrapy.contrib.downloadermiddleware.httpcache.HttpCacheMiddleware': 300,
 #}
 
 # Enable or disable extensions
