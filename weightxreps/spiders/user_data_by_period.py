@@ -33,8 +33,9 @@ class UserDataByPeriod(CrawlSpider):
         load = ex.xpath('tr/td/span[@class="weight n W weightunit-1"]/text()')
         reps = ex.xpath('tr/td/span[@class="n R"]/text()')
         sets = ex.xpath('tr/td/span[@class="n"]/text()')
-        intensity = ex.xpath('tr/td/span[contains(concat(" ", @class, " "), "efint ")][2]/text()')
-        return zip(load, reps, sets, intensity)
+        percentage = ex.xpath('tr/td/span[contains(concat(" ", @class, " "), "efint ")][2]/text()')
+
+        return zip(load, reps, sets, percentage )
 
     def extract_sets(self, sets):
         items = sets.extract()
@@ -94,18 +95,20 @@ class UserDataByPeriod(CrawlSpider):
                 item['exercise_date'] = response.url[-10:]
                 item['user_weight'] = body_weight
                 item['exercise_name'] = eblock.xpath('div/strong/span[@class="ename"]/text()').extract()
+                item['max_weight'] = eblock.xpath('table[@class="sha stats"]/tbody/tr/td/a/span[@kg][1]/text()').extract()[1]
 
                 for ex in eblock.xpath('table[@class=""]/tbody'):
                     """ Exercise table"""
                     zipped_data = self.extract_exercise(ex)
-                    for load, reps, sets, intensity in zipped_data:
+                    for load, reps, sets, percentage in zipped_data:
                         amount_of_sets = self.extract_sets(sets)
                         for _ in range(int(amount_of_sets[0])):
                             i = item.copy()
                             i['exercise_load'] = load.extract()
                             i['repetitions_done'] = reps.extract()
-                            i['intensity'] = intensity.extract()
-                            i['max_weight'] = int(float(i['exercise_load']) / (float(i['intensity'])/100))
+                            i['intensity'] = percentage.extract()
+                            if i['intensity'] == 'PR':
+                                i['intensity'] = 100
                             items.append(i)
 
             self.items.extend(items)
