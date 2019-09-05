@@ -77,7 +77,7 @@ class UserDataByPeriod(CrawlSpider):
 
     def recursive_parse(self, response):
         """
-            Scrape a specified range between dates
+           Parse training data
         """
         body_weight = response.xpath('//span[@class="weight bwnum weightunit-1"]/text()').extract()
         jbody = response.xpath('//div[@id="jbody"]')
@@ -88,6 +88,7 @@ class UserDataByPeriod(CrawlSpider):
             items = []
             for  comment, eblock in zip(jbody.xpath('div[@class="userText"]'), jbody.xpath('div[@class="eblock"]')):
                 """ Each # Exercise """
+
                 item = WeightxrepsItem()
                 item['user_name'] = self.user_name
                 item['exercise_date'] = response.url[-10:]
@@ -104,6 +105,7 @@ class UserDataByPeriod(CrawlSpider):
                             i['exercise_load'] = load.extract()
                             i['repetitions_done'] = reps.extract()
                             i['intensity'] = intensity.extract()
+                            i['max_weight'] = int(float(i['exercise_load']) / (float(i['intensity'])/100))
                             items.append(i)
 
             self.items.extend(items)
