@@ -33,7 +33,8 @@ class UserDataByPeriod(CrawlSpider):
         load = ex.xpath('tr/td/span[@class="weight n W weightunit-1"]/text()')
         reps = ex.xpath('tr/td/span[@class="n R"]/text()')
         sets = ex.xpath('tr/td/span[@class="n"]/text()')
-        return zip(load, reps, sets)
+        intensity = ex.xpath('tr/td/span[contains(concat(" ", @class, " "), "efint ")][2]/text()')
+        return zip(load, reps, sets, intensity)
 
     def extract_sets(self, sets):
         items = sets.extract()
@@ -78,32 +79,31 @@ class UserDataByPeriod(CrawlSpider):
         """
             Scrape a specified range between dates
         """
-        weight = response.xpath('//span[@class="weight bwnum weightunit-1"]/text()').extract()
+        body_weight = response.xpath('//span[@class="weight bwnum weightunit-1"]/text()').extract()
         jbody = response.xpath('//div[@id="jbody"]')
-
-        if weight:
+        if body_weight:
             if self.save_html:
                 self.parse_to_file(response)
 
             items = []
-            for user_text, eblock in zip(jbody.xpath('div[@class="userText"]'),
-                                         jbody.xpath('div[@class="eblock"]')):
+            for  comment, eblock in zip(jbody.xpath('div[@class="userText"]'), jbody.xpath('div[@class="eblock"]')):
+                """ Each # Exercise """
                 item = WeightxrepsItem()
                 item['user_name'] = self.user_name
                 item['exercise_date'] = response.url[-10:]
-                item['user_weight'] = weight
+                item['user_weight'] = body_weight
                 item['exercise_name'] = eblock.xpath('div/strong/span[@class="ename"]/text()').extract()
-                #item['exercise_category'] = user_text.re(r'([a-zA-Z]+)<br>\s*<br>\s*</div>$') or \
-                #                            items and items[-1]['exercise_category'] or None
 
                 for ex in eblock.xpath('table[@class=""]/tbody'):
+                    """ Exercise table"""
                     zipped_data = self.extract_exercise(ex)
-                    for load, reps, sets in zipped_data:
+                    for load, reps, sets, intensity in zipped_data:
                         amount_of_sets = self.extract_sets(sets)
                         for _ in range(int(amount_of_sets[0])):
                             i = item.copy()
                             i['exercise_load'] = load.extract()
                             i['repetitions_done'] = reps.extract()
+                            i['intensity'] = intensity.extract()
                             items.append(i)
 
             self.items.extend(items)
