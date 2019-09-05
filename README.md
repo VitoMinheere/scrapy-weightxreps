@@ -41,7 +41,7 @@ Pages will only be saved when a training is posted on that date.
 
 ## Parsing
 Parsing is done via ```xpath``` to parse the html pages.
-I use [https://www.freeformatter.com/xpath-tester.html#ad-output](xpath tester) to check my syntax on smaller pieces of html from the wxr source
+I use [xpath tester](https://www.freeformatter.com/xpath-tester.html#ad-output) to check my syntax on smaller pieces of html from the wxr source
 
 ## Status
 Project is: _in progress_, scraping is possible, however i am not getting all the data i want. I want to also add the user's comments
